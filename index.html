@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>15分ログ</title>
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1A211F" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="15分ログ">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<style>
+/* Layout: household-ledger style. Month calendar is home; tapping a day opens it as one vertical column of 96 quarter-hours, with the activity palette pinned to the bottom edge. */
+:root{
+  --bg:#EDF1EF; --surface:#FFFFFF; --surface2:#F4F7F5; --ink:#1C2321; --muted:#5F6B66; --line:#D3DBD7; --line2:#B9C4BF;
+  --accent:#2B5E51; --on-accent:#FFFFFF; --good:#3F9A7E; --warn:#D9A43B; --bad:#D0624F; --on-cat:#1C2321;
+  --sun:#C2513F; --sat:#3E6CA8;
+  --k-sleep:#8E9BD6; --k-nap:#B6BFEA; --k-deep:#4FA58E; --k-work:#A3D3C3; --k-talk:#8DB8DD; --k-meal:#EDBE6A;
+  --k-break:#D3CCBC; --k-move:#BBA3D8; --k-exercise:#E8907F; --k-chores:#D9BB96; --k-hobby:#EFA6C2; --k-idle:#B9BEBC;
+  --f-body:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+  --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1A211F; --surface2:#202926; --ink:#E5ECE9; --muted:#93A19B; --line:#2D3734; --line2:#3E4A46;
+  --accent:#7CC3AC; --on-accent:#0E1513; --good:#5DB898; --warn:#D8AA4F; --bad:#E07A66; --on-cat:#EEF3F1;
+  --sun:#E5806E; --sat:#7EA6DB;
+  --k-sleep:#4D5A9C; --k-nap:#5E68A3; --k-deep:#2C7864; --k-work:#4B8273; --k-talk:#3E6E95; --k-meal:#A27A27;
+  --k-break:#6A6556; --k-move:#6C5990; --k-exercise:#9E4C40; --k-chores:#836748; --k-hobby:#9A5571; --k-idle:#565C5A;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1A211F; --surface2:#202926; --ink:#E5ECE9; --muted:#93A19B; --line:#2D3734; --line2:#3E4A46;
+  --accent:#7CC3AC; --on-accent:#0E1513; --good:#5DB898; --warn:#D8AA4F; --bad:#E07A66; --on-cat:#EEF3F1;
+  --sun:#E5806E; --sat:#7EA6DB;
+  --k-sleep:#4D5A9C; --k-nap:#5E68A3; --k-deep:#2C7864; --k-work:#4B8273; --k-talk:#3E6E95; --k-meal:#A27A27;
+  --k-break:#6A6556; --k-move:#6C5990; --k-exercise:#9E4C40; --k-chores:#836748; --k-hobby:#9A5571; --k-idle:#565C5A;
+  color-scheme:dark}
+*{box-sizing:border-box}
+html{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+img{max-width:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px 0}
+.top .in{max-width:560px;margin:0 auto}
+.bar1{display:flex;align-items:center;gap:4px;min-height:44px}
+.nav{width:40px;height:40px;border-radius:50%;font-size:22px;color:var(--muted);display:grid;place-items:center;flex:none}
+.nav:hover,.back:hover{background:var(--surface2)}
+.ttl{flex:1;min-width:0;display:flex;align-items:baseline;justify-content:center;gap:8px;padding:4px}
+.d-main{font-size:18px;font-weight:700;letter-spacing:.02em}
+.d-sub{font-size:12px;color:var(--muted)}
+.back{flex:none;font-size:13.5px;font-weight:500;color:var(--accent);padding:8px 10px 8px 4px;border-radius:8px}
+.pill{flex:none;font-size:12.5px;font-weight:700;border:1px solid var(--line2);border-radius:999px;padding:5px 12px}
+.tabs{display:flex;align-items:flex-end;gap:4px;margin-top:2px}
+.tabs .tb{flex:1;display:flex}
+.tabs .tb button{flex:1;padding:10px 0 9px;font-size:14px;font-weight:500;color:var(--muted);border-bottom:2.5px solid transparent}
+.tabs .tb button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+
+main{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 40px}
+body.has-pal main{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+h2{font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--muted);margin:22px 0 8px}
+h2:first-child{margin-top:4px}
+
+/* calendar */
+.mstats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.ms{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.ms small{display:block;font-size:10.5px;color:var(--muted);line-height:1.3}
+.ms b{font-family:var(--f-mono);font-size:17px;font-weight:500}
+.ms span{font-size:10.5px;color:var(--muted);margin-left:1px}
+.cal{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.wk{display:grid;grid-template-columns:repeat(7,1fr)}
+.wk.head div{font-size:11px;text-align:center;color:var(--muted);padding:6px 0 4px;border-bottom:1px solid var(--line)}
+.wk.head div:first-child{color:var(--sun)}.wk.head div:last-child{color:var(--sat)}
+.dc{position:relative;min-height:66px;padding:4px 3px 6px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+.wk .dc:nth-child(7){border-right:0}
+.wk:last-child .dc{border-bottom:0}
+.dc.out{background:var(--surface2)}
+.dn{font-family:var(--f-mono);font-size:13px;width:24px;height:24px;display:grid;place-items:center;border-radius:50%}
+.dc.sun .dn{color:var(--sun)}.dc.sat .dn{color:var(--sat)}
+.dc.today .dn{background:var(--ink);color:var(--surface)}
+.dc.sel{background:color-mix(in srgb,var(--accent) 14%,var(--surface));box-shadow:inset 0 0 0 2px var(--accent)}
+.dsl{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);line-height:1.2}
+.sy{display:flex;gap:1px;line-height:1}
+.sy i{font-style:normal;font-size:9.5px;font-weight:700;padding:1px 2px;border-radius:3px;color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,transparent)}
+.mb{position:absolute;left:5px;right:5px;bottom:3px;height:3px;border-radius:2px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--muted);margin-top:6px}
+.legend i{font-style:normal;font-size:9.5px;font-weight:700;padding:0 3px;border-radius:3px;color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,transparent);margin-right:3px}
+
+.sum{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-top:12px;display:grid;gap:10px}
+.sum h3{margin:0;font-size:16px;font-weight:700}
+.sum h3 small{font-size:12px;color:var(--muted);font-weight:400;margin-left:6px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13.5px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;min-width:0}
+.acts{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12.5px}
+.acts span{display:inline-flex;align-items:center;gap:5px}
+.acts i{width:10px;height:10px;border-radius:3px;background:var(--cc)}
+.dia{font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;border-left:2px solid var(--line);padding-left:10px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{padding:11px 0;border-radius:8px;font-weight:700;font-size:14px;background:var(--accent);color:var(--on-accent);text-align:center}
+.btn.ghost{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+.none{font-size:13px;color:var(--muted)}
+
+/* day timeline: one vertical column */
+.daysum{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--muted);margin-bottom:8px}
+.daysum b{color:var(--ink);font-weight:500}
+.tl{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.sl{display:grid;grid-template-columns:56px 1fr;width:100%;height:30px;text-align:left;border-top:1px solid var(--line);position:relative}
+.sl.q0{border-top:1px solid var(--line2)}
+.sl:first-child{border-top:0}
+.sl.on.cont{border-top-color:transparent}
+.sl .t{font-family:var(--f-mono);font-size:11px;color:var(--muted);padding:0 8px;align-self:center;font-variant-numeric:tabular-nums}
+.sl.q0 .t{color:var(--ink);font-weight:500;font-size:12.5px}
+.sl .blk{position:relative;display:flex;align-items:center;gap:8px;padding:0 10px;min-width:0}
+.sl.on .blk{background:var(--cc)}
+.sl .blk b{font-size:12.5px;color:var(--on-cat);white-space:nowrap}
+.sl .blk em{font-style:normal;font-family:var(--f-mono);font-size:11px;color:var(--on-cat);opacity:.75}
+.sl.now .t{color:var(--bad);font-weight:700}
+.sl.now::after{content:"";position:absolute;left:52px;right:0;top:50%;height:2px;background:var(--bad);pointer-events:none}
+.sl.anchor .blk{box-shadow:inset 0 0 0 3px var(--accent);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:inset 0 0 0 3px transparent}}
+@media (prefers-reduced-motion:reduce){.sl.anchor .blk{animation:none}}
+
+/* palette */
+.palette{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
+  padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));
+  padding-top:8px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+.palette .in{max-width:560px;margin:0 auto}
+.hintrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;padding-inline:4px}
+#hint{font-size:12px;color:var(--muted);min-width:0}
+#nowBtn{flex:none;font-size:12.5px;font-weight:700;color:var(--on-accent);background:var(--accent);padding:6px 12px;border-radius:999px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:flex;align-items:center;gap:6px;padding:6px 10px 6px 8px;border-radius:999px;border:1px solid var(--line);font-size:13px;background:var(--surface)}
+.chip i{width:12px;height:12px;border-radius:3px;background:var(--cc);flex:none}
+.chip[aria-pressed="true"]{background:var(--cc);border-color:var(--cc);color:var(--on-cat);font-weight:700}
+.chip[aria-pressed="true"] i{background:var(--on-cat);opacity:.35}
+.chip.erase{--cc:var(--ink)}
+.chip.erase[aria-pressed="true"]{color:var(--surface)}
+
+/* condition */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.stack{display:grid;gap:12px}
+.times{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.times label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+input[type=time]{width:100%;font-family:var(--f-mono);font-size:20px;color:var(--ink);background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:48px}
+.sleep{display:flex;align-items:center;gap:12px}
+.sleep .val{flex:1;text-align:center}
+.sleep .num{font-family:var(--f-mono);font-size:34px;font-weight:500;line-height:1}
+.sleep .unit{font-size:13px;color:var(--muted);margin-left:4px}
+.sleep .note{display:block;font-size:11.5px;color:var(--muted);margin-top:4px}
+.step{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);font-size:22px;background:var(--surface2);flex:none}
+.linkbtn{font-size:12px;color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.paintbtn{justify-self:start;font-size:12.5px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:5px 12px}
+.paintbtn[disabled]{opacity:.4;cursor:default}
+.lbl{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px;font-weight:500;margin-bottom:6px}
+.lbl small{font-size:11.5px;color:var(--muted);font-weight:400}
+.seg{display:grid;gap:4px}
+.seg.s5{grid-template-columns:repeat(5,1fr)}
+.seg.s4{grid-template-columns:repeat(4,1fr)}
+.seg button{padding:9px 0;border-radius:8px;background:var(--surface2);font-size:13px;color:var(--muted);border:1px solid transparent}
+.seg button b{display:block;font-family:var(--f-mono);font-size:15px;color:var(--ink);font-weight:500;line-height:1.2}
+.seg button.on{background:var(--accent);color:var(--on-accent)}
+.seg button.on b{color:var(--on-accent)}
+.seg.sym button.on{background:color-mix(in srgb,var(--bad) calc(var(--lv)*28%),var(--surface2));color:var(--ink);border-color:var(--bad)}
+.meals{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center}
+.meals label{font-size:13px;color:var(--muted)}
+input[type=text],textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+textarea{min-height:110px;resize:vertical;line-height:1.7}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tag{padding:5px 11px;border-radius:999px;border:1px solid var(--line);font-size:12.5px;color:var(--muted);background:var(--surface)}
+.tag.on{border-color:var(--accent);color:var(--accent);font-weight:700;background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+.sub{font-size:11.5px;color:var(--muted);margin-top:10px;margin-bottom:2px}
+
+/* review */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.kpi small{display:block;font-size:11px;color:var(--muted);letter-spacing:.04em}
+.kpi b{font-family:var(--f-mono);font-size:22px;font-weight:500}
+.kpi span{font-size:11px;color:var(--muted);margin-left:2px}
+.bars{display:grid;gap:5px}
+.brow{display:grid;grid-template-columns:64px 1fr;align-items:center;gap:6px;text-align:left;width:100%}
+.brow .dl{font-size:11.5px;color:var(--muted);font-family:var(--f-mono);white-space:nowrap}
+.brow .dl.cur{color:var(--ink);font-weight:500}
+.bar{height:18px;border-radius:4px;background:var(--surface2)}
+.ticks{display:grid;grid-template-columns:64px 1fr;gap:6px;font-family:var(--f-mono);font-size:10px;color:var(--muted)}
+.ticks div{display:flex;justify-content:space-between}
+.tot{display:grid;gap:6px}
+.trow{display:grid;grid-template-columns:76px 1fr 46px;gap:8px;align-items:center;font-size:12.5px}
+.trow .tb{height:10px;border-radius:3px;background:var(--cc)}
+.trow .tv{font-family:var(--f-mono);text-align:right;color:var(--muted)}
+.heatwrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+table.heat{border-collapse:separate;border-spacing:2px;font-size:11px}
+.heat th{font-weight:400;color:var(--muted);font-family:var(--f-mono);text-align:center;min-width:22px}
+.heat th.rl{text-align:left;font-family:var(--f-body);padding-right:6px;white-space:nowrap}
+.heat td{width:22px;height:24px;text-align:center;border-radius:4px;background:var(--surface2);font-family:var(--f-mono);color:var(--ink)}
+.heat td.na{color:transparent}
+.ins{display:grid;gap:8px;padding:0;margin:0;list-style:none}
+.ins li{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:6px;padding:9px 12px;font-size:13.5px}
+.ins li.pos{border-left-color:var(--good)}
+.empty{font-size:13px;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);padding:14px}
+.fine{font-size:11px;color:var(--muted);margin-top:10px}
+.data p{margin:0;font-size:13px;color:var(--muted)}
+.data .btns{margin-top:4px}
+#impMsg{font-size:12.5px}
+#impMsg.err{color:var(--bad)}
+.bnote{display:block;margin-top:10px;font-size:12px;color:var(--warn);text-align:left;width:100%}
+</style>
+</head>
+<body>
+
+<header class="top" id="hdr">
+  <div class="in">
+    <div class="bar1" id="bar1"></div>
+    <nav class="tabs"><div class="tb" id="tabs" role="tablist"></div></nav>
+  </div>
+</header>
+
+<main>
+  <section id="v-cal"></section>
+
+  <section id="v-time" hidden>
+    <div class="daysum"><span id="sumL"></span><span id="sumR"></span></div>
+    <div class="tl" id="grid"></div>
+  </section>
+
+  <section id="v-cond" hidden>
+    <h2>睡眠</h2>
+    <div class="card stack">
+      <div class="times">
+        <div><label for="bed">昨夜の就寝</label><input type="time" id="bed" step="300"></div>
+        <div><label for="wake">今朝の起床</label><input type="time" id="wake" step="300"></div>
+      </div>
+      <div class="sleep">
+        <button class="step" id="slMinus" aria-label="30分減らす">−</button>
+        <div class="val"><span class="num" id="slNum">–</span><span class="unit">時間</span><span class="note" id="slNote"></span></div>
+        <button class="step" id="slPlus" aria-label="30分増やす">+</button>
+      </div>
+      <button class="paintbtn" id="paintSleep">この睡眠を「時間」に塗る</button>
+    </div>
+
+    <h2>気分と集中</h2>
+    <div class="card stack">
+      <div><div class="lbl">気分<small>もう一度タップで取り消し</small></div><div class="seg s5" id="mood"></div></div>
+      <div><div class="lbl">仕事の集中</div><div class="seg s5" id="focus"></div></div>
+    </div>
+
+    <h2>体調</h2>
+    <div class="card stack" id="syms"></div>
+
+    <h2>食べたもの</h2>
+    <div class="card">
+      <div class="meals">
+        <label for="m-b">朝</label><input type="text" id="m-b" placeholder="例：トースト、コーヒー">
+        <label for="m-l">昼</label><input type="text" id="m-l">
+        <label for="m-d">夜</label><input type="text" id="m-d">
+        <label for="m-s">間食</label><input type="text" id="m-s">
+      </div>
+      <div class="sub">あてはまるものをタップ（振り返りで体調との関係を見ます）</div>
+      <div class="tags" id="tagsFood"></div>
+      <div class="sub">生活・環境</div>
+      <div class="tags" id="tagsLife"></div>
+    </div>
+
+    <h2>日記</h2>
+    <textarea id="diary" placeholder="ひとことでOK。気になったこと、うまくいったこと"></textarea>
+  </section>
+
+  <section id="v-review" hidden></section>
+</main>
+
+<div class="palette" id="palette" hidden>
+  <div class="in">
+    <div class="hintrow"><span id="hint"></span><button id="nowBtn">今の15分に記録</button></div>
+    <div class="chips" id="chips"></div>
+  </div>
+</div>
+
+<script>
+const CATS=[
+  {k:'sleep',n:'睡眠'},{k:'nap',n:'仮眠'},{k:'deep',n:'集中作業'},{k:'work',n:'作業'},{k:'talk',n:'会議・連絡'},
+  {k:'meal',n:'食事'},{k:'break',n:'休憩'},{k:'move',n:'移動'},{k:'exercise',n:'運動'},{k:'chores',n:'家事・身支度'},
+  {k:'hobby',n:'趣味'},{k:'idle',n:'ダラダラ'}];
+const CMAP=Object.fromEntries(CATS.map(c=>[c.k,c]));
+const FOOD=['カフェイン','甘いもの','揚げ物・脂っこい','乳製品','アルコール','辛いもの','野菜しっかり','水分たっぷり','夜遅い食事','食事抜き'];
+const LIFE=['気圧・天気の崩れ','生理中','運動した','湯船に入った','夜ふかし','長時間の画面','ストレス大'];
+const SYMS=[{k:'skin',n:'肌荒れ',s:'肌'},{k:'head',n:'片頭痛・頭痛',s:'頭'},{k:'sleepy',n:'日中の眠気',s:'眠'}];
+const LV=['なし','軽い','中','強い'];
+const MOODW=['最悪','低め','ふつう','良い','最高'];
+const FOCW=['無理','散漫','ふつう','良い','没頭'];
+const DOW='日月火水木金土';
+
+const $=s=>document.querySelector(s);
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parse=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(s,n)=>{const x=parse(s);x.setDate(x.getDate()+n);return ymd(x)};
+const today=()=>ymd(new Date());
+const slotNow=()=>{const n=new Date();return n.getHours()*4+Math.floor(n.getMinutes()/15)};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hm=t=>{if(!t)return null;const[h,m]=t.split(':').map(Number);return h*60+m};
+const fmtH=v=>{const h=Math.floor(v),m=Math.round((v-h)*60);return m?`${h}h${m}m`:`${h}h`};
+
+const LS='log15:v1',LSP='log15:prefs';
+let days={};
+let cur=today(),view='cal',dayTab='time',sel='deep',anchor=null,anchorT=null;
+let mon=cur.slice(0,7);
+
+function blank(date){return{date,slots:Array(96).fill(''),bed:'',wake:'',sleep:null,mood:0,focus:0,sym:{skin:0,head:0,sleepy:0},tags:[],meals:{b:'',l:'',d:'',s:''},diary:'',updatedAt:0}}
+function norm(src,date){const s=src||{};const o=blank(date||s.date||'');
+  for(const k of['bed','wake','sleep','mood','focus','diary','updatedAt'])if(s[k]!==undefined)o[k]=s[k];
+  if(Array.isArray(s.slots))o.slots=o.slots.map((_,i)=>typeof s.slots[i]==='string'?s.slots[i]:'');
+  o.sym=Object.assign({skin:0,head:0,sleepy:0},s.sym||{});o.meals=Object.assign({b:'',l:'',d:'',s:''},s.meals||{});
+  o.tags=Array.isArray(s.tags)?s.tags.slice():[];return o}
+const peek=d=>days[d];
+const day=d=>days[d]||(days[d]=blank(d));
+const hasData=d=>!!d&&(d.slots.some(Boolean)||d.bed||d.wake||d.mood||d.focus||d.sleep!=null||d.sym.skin||d.sym.head||d.sym.sleepy||d.tags.length||d.diary||Object.values(d.meals).some(Boolean));
+
+/* sleep: manual > bed/wake > painted slots */
+function bwSleep(d){if(!d||!d.bed||!d.wake)return null;let x=hm(d.wake)-hm(d.bed);if(x<=0)x+=1440;return Math.round(x/15)/4}
+function autoSleep(date){const t=peek(date),y=peek(addDays(date,-1));let c=0;
+  if(t)for(let i=0;i<48;i++)if(t.slots[i]==='sleep')c++;
+  if(y)for(let i=72;i<96;i++)if(y.slots[i]==='sleep')c++;
+  return c?c/4:null}
+const sleepOf=date=>{const d=peek(date);if(d&&d.sleep!=null)return d.sleep;return bwSleep(d)??autoSleep(date)};
+
+/* ---------- storage: this iPhone only ---------- */
+function loadLocal(){
+  try{const r=JSON.parse(localStorage.getItem(LS)||'{}');for(const k in r)days[k]=norm(r[k],k)}catch(e){}
+  try{const p=JSON.parse(localStorage.getItem(LSP)||'{}');if(p.sel&&(CMAP[p.sel]||p.sel==='erase'))sel=p.sel;if(p.dayTab==='cond')dayTab='cond';if(p.lastBackup)lastBackup=p.lastBackup}catch(e){}
+}
+let lastBackup=0,saveFail=false;
+function writeLocal(){try{const o={};for(const k in days)if(hasData(days[k])||days[k].updatedAt)o[k]=days[k];localStorage.setItem(LS,JSON.stringify(o));saveFail=false}catch(e){saveFail=true}}
+let lsT;function saveLocal(){clearTimeout(lsT);lsT=setTimeout(writeLocal,250)}
+function savePrefs(){try{localStorage.setItem(LSP,JSON.stringify({sel,dayTab,lastBackup}))}catch(e){}}
+function change(date){day(date).updatedAt=Date.now();saveLocal()}
+function setSync(){}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){clearTimeout(lsT);writeLocal();savePrefs()}});
+window.addEventListener('pagehide',()=>{clearTimeout(lsT);writeLocal()});
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+
+/* ---------- backup ---------- */
+function backupJSON(){const o={};for(const k in days)if(hasData(days[k]))o[k]=days[k];return JSON.stringify({app:'log15',version:1,exportedAt:new Date().toISOString(),days:o})}
+async function exportBackup(){
+  writeLocal();
+  const name=`log15-backup-${today()}.json`;
+  const blob=new Blob([backupJSON()],{type:'application/json'});
+  let ok=false;
+  try{const f=new File([blob],name,{type:'application/json'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});ok=true}}
+  catch(e){if(e&&e.name==='AbortError')return}
+  if(!ok){const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
+  lastBackup=Date.now();savePrefs();if(view==='review')renderReview();
+}
+function importBackup(file){
+  const msg=t=>{const el=$('#impMsg');if(el){el.textContent=t;el.className=t.startsWith('読み込めません')?'err':''}};
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const j=JSON.parse(r.result);const src=j&&j.days&&typeof j.days==='object'?j.days:null;
+      if(!src)throw 0;
+      let n=0;
+      for(const k in src){if(!/^\d{4}-\d{2}-\d{2}$/.test(k))continue;const inc=norm(src[k],k),cur0=days[k];
+        if(!cur0||!hasData(cur0)||(inc.updatedAt||0)>=(cur0.updatedAt||0)){days[k]=inc;n++}}
+      writeLocal();render();msg(`${n}日分の記録を読み込みました。`);
+    }catch(e){msg('読み込めません：15分ログのバックアップファイル（.json）を選んでください。')}
+  };
+  r.onerror=()=>msg('読み込めません：ファイルを開けませんでした。');
+  r.readAsText(file);
+}
+
+/* ---------- header ---------- */
+function dateLabel(ds){const d=parse(ds);return `${d.getMonth()+1}月${d.getDate()}日（${DOW[d.getDay()]}）`}
+function relLabel(ds){const diff=Math.round((parse(ds)-parse(today()))/864e5);return diff===0?'今日':diff===-1?'昨日':diff===1?'明日':''}
+function renderHeader(){
+  let b;
+  if(view==='cal'){const[y,m]=mon.split('-').map(Number);
+    b=`<button class="nav" data-act="mprev" aria-label="前の月">‹</button><div class="ttl"><span class="d-main">${y}年${m}月</span></div><button class="nav" data-act="mnext" aria-label="次の月">›</button><button class="pill" data-act="today">今日</button>`}
+  else if(view==='day'){
+    b=`<button class="back" data-act="back">‹ 月</button><button class="nav" data-act="dprev" aria-label="前の日">‹</button><div class="ttl"><span class="d-main">${dateLabel(cur)}</span><span class="d-sub">${relLabel(cur)}</span></div><button class="nav" data-act="dnext" aria-label="次の日">›</button>`}
+  else{const d=parse(cur);b=`<div class="ttl"><span class="d-main">振り返り</span><span class="d-sub">${d.getMonth()+1}/${d.getDate()}までの記録</span></div>`}
+  $('#bar1').innerHTML=b;
+  const tabs=view==='day'?[['time','時間'],['cond','調子']]:[['cal','カレンダー'],['review','振り返り']];
+  const act=view==='day'?dayTab:view;
+  $('#tabs').innerHTML=tabs.map(([k,n])=>`<button role="tab" data-tab="${k}" aria-selected="${k===act}">${n}</button>`).join('');
+  $('#v-cal').hidden=view!=='cal';$('#v-review').hidden=view!=='review';
+  $('#v-time').hidden=!(view==='day'&&dayTab==='time');$('#v-cond').hidden=!(view==='day'&&dayTab==='cond');
+  const pal=view==='day'&&dayTab==='time';$('#palette').hidden=!pal;document.body.classList.toggle('has-pal',pal);
+}
+function render(){renderHeader();if(view==='cal')renderCal();else if(view==='review')renderReview();else if(dayTab==='time')renderTime();else renderCond()}
+function openDay(ds,tabName){cur=ds;view='day';if(tabName)dayTab=tabName;anchor=null;savePrefs();window.scrollTo({top:0});render();if(dayTab==='time')scrollToNow()}
+
+$('#hdr').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  const a=b.dataset.act,t=b.dataset.tab;
+  if(t){if(t==='time'||t==='cond'){dayTab=t;anchor=null;savePrefs();window.scrollTo({top:0});render();if(t==='time')scrollToNow()}else{view=t;window.scrollTo({top:0});render()}return}
+  if(a==='mprev'||a==='mnext'){const[y,m]=mon.split('-').map(Number);const d=new Date(y,m-1+(a==='mnext'?1:-1),1);mon=ymd(d).slice(0,7);renderCal()}
+  else if(a==='today'){cur=today();mon=cur.slice(0,7);render()}
+  else if(a==='back'){view='cal';mon=cur.slice(0,7);anchor=null;window.scrollTo({top:0});render()}
+  else if(a==='dprev'||a==='dnext'){cur=addDays(cur,a==='dnext'?1:-1);anchor=null;render();if(dayTab==='time')scrollToNow()}
+});
+
+/* ---------- calendar ---------- */
+function renderCal(){
+  renderHeader();
+  const[y,m]=mon.split('-').map(Number);const first=new Date(y,m-1,1),last=new Date(y,m,0).getDate();
+  const t=today();
+  // month stats
+  const mdays=[...Array(last)].map((_,i)=>`${mon}-${pad(i+1)}`);
+  const rec=mdays.filter(ds=>hasData(peek(ds)));
+  const sls=mdays.map(sleepOf).filter(v=>v!=null),as=sls.length?(sls.reduce((a,b)=>a+b,0)/sls.length).toFixed(1):'–';
+  const cnt=k=>rec.filter(ds=>peek(ds).sym[k]>0).length;
+  let h=`<div class="mstats">
+    <div class="ms"><small>平均睡眠</small><b>${as}</b><span>h</span></div>
+    <div class="ms"><small>頭痛の日</small><b>${cnt('head')}</b><span>日</span></div>
+    <div class="ms"><small>肌荒れの日</small><b>${cnt('skin')}</b><span>日</span></div>
+    <div class="ms"><small>眠気の日</small><b>${cnt('sleepy')}</b><span>日</span></div></div>`;
+  h+=`<div class="cal"><div class="wk head">${[...DOW].map(w=>`<div>${w}</div>`).join('')}</div>`;
+  const lead=first.getDay(),cells=Math.ceil((lead+last)/7)*7;
+  for(let i=0;i<cells;i++){
+    if(i%7===0)h+=`<div class="wk">`;
+    const dn=i-lead+1;
+    if(dn<1||dn>last)h+=`<div class="dc out"></div>`;
+    else{
+      const ds=`${mon}-${pad(dn)}`,d=peek(ds),sl=sleepOf(ds),w=i%7;
+      const cls=['dc',w===0?'sun':w===6?'sat':'',ds===t?'today':'',ds===cur?'sel':''].join(' ');
+      let inner=`<span class="dn">${dn}</span>`;
+      if(sl!=null)inner+=`<span class="dsl">${sl.toFixed(sl%1?1:0)}h</span>`;
+      if(d){const s=SYMS.filter(x=>d.sym[x.k]>0);if(s.length)inner+=`<span class="sy">${s.map(x=>`<i>${x.s}</i>`).join('')}</span>`;
+        if(d.mood)inner+=`<span class="mb" style="background:color-mix(in srgb,var(--good) ${d.mood*18}%,var(--line))"></span>`}
+      h+=`<button class="${cls}" data-d="${ds}" aria-label="${dateLabel(ds)}">${inner}</button>`;
+    }
+    if(i%7===6)h+=`</div>`;
+  }
+  h+=`</div><div class="legend"><span>数字＝睡眠時間</span><span><i>頭</i>頭痛 <i>肌</i>肌荒れ <i>眠</i>眠気</span><span>下の線＝気分（濃いほど良い）</span></div>`;
+  h+=summaryCard(cur);
+  const nrec=Object.values(days).filter(hasData).length;
+  if(nrec>=7&&Date.now()-lastBackup>30*864e5)h+=`<button class="bnote" data-act2="backup">${lastBackup?'前回のバックアップから30日以上たっています':'バックアップがまだありません'}。振り返り › データ から書き出せます。</button>`;
+  if(saveFail)h+=`<p class="bnote">このiPhoneに保存できませんでした。空き容量を確認してください。</p>`;
+  $('#v-cal').innerHTML=h;
+}
+function summaryCard(ds){
+  const d=peek(ds),rl=relLabel(ds);
+  let h=`<div class="sum"><h3>${dateLabel(ds)}${rl?`<small>${rl}</small>`:''}</h3>`;
+  if(!hasData(d)){h+=`<p class="none" style="margin:0">まだ記録がありません。下のボタンから入力できます。</p>`}
+  else{
+    const sl=sleepOf(ds);const rows=[];
+    if(d.bed||d.wake||sl!=null)rows.push(['睡眠',`${d.bed||'--:--'} → ${d.wake||'--:--'}${sl!=null?` ・ <b class="mono">${fmtH(sl)}</b>`:''}`]);
+    if(d.mood||d.focus)rows.push(['気分・集中',`${d.mood?`気分 <b class="mono">${d.mood}</b>`:''}${d.mood&&d.focus?' ・ ':''}${d.focus?`集中 <b class="mono">${d.focus}</b>`:''}`]);
+    const s=SYMS.filter(x=>d.sym[x.k]>0);if(s.length)rows.push(['体調',s.map(x=>`${x.n}（${LV[d.sym[x.k]]}）`).join('、')]);
+    const meals=['b','l','d','s'].map((k,i)=>d.meals[k]?`${'朝昼夜間'[i]}：${esc(d.meals[k])}`:'').filter(Boolean);
+    if(meals.length)rows.push(['食事',meals.join(' / ')]);
+    if(d.tags.length)rows.push(['タグ',d.tags.map(esc).join('、')]);
+    if(rows.length)h+=`<dl class="kv">${rows.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>`;
+    const c={};for(const x of d.slots)if(x)c[x]=(c[x]||0)+1;
+    const top=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    if(top.length)h+=`<div class="acts">${top.map(([k,n])=>`<span style="--cc:var(--k-${k})"><i></i>${CMAP[k].n} <span class="mono">${fmtH(n/4)}</span></span>`).join('')}</div>`;
+    if(d.diary)h+=`<div class="dia">${esc(d.diary)}</div>`;
+  }
+  h+=`<div class="btns"><button class="btn" data-open="time">時間を記録</button><button class="btn ghost" data-open="cond">調子を記録</button></div></div>`;
+  return h;
+}
+$('#v-cal').addEventListener('click',e=>{
+  const c=e.target.closest('[data-d]');
+  if(c){const ds=c.dataset.d;if(ds===cur)openDay(ds);else{cur=ds;renderCal()}return}
+  const o=e.target.closest('[data-open]');if(o){openDay(cur,o.dataset.open);return}
+  if(e.target.closest('[data-act2="backup"]')){view='review';render();requestAnimationFrame(()=>{const x=$('#expBtn');if(x)x.scrollIntoView({block:'center'})})}
+});
+
+/* ---------- day: time (one vertical column) ---------- */
+function renderTime(){
+  const d=day(cur),nowI=cur===today()?slotNow():-1;let h='';
+  for(let i=0;i<96;i++){
+    const hr=Math.floor(i/4),q=i%4,k=d.slots[i],c=CMAP[k];
+    const cont=c&&i>0&&d.slots[i-1]===k,start=c&&!cont;
+    let lab='';
+    if(start){let j=i;while(j<96&&d.slots[j]===k)j++;lab=`<b>${c.n}</b><em>${fmtH((j-i)/4)}</em>`}
+    const cls=['sl','q'+q,c?'on':'',cont?'cont':'',i===anchor?'anchor':'',i===nowI?'now':''].join(' ');
+    h+=`<button class="${cls}" data-i="${i}"${c?` style="--cc:var(--k-${k})"`:''} aria-label="${hr}時${q*15}分 ${c?c.n:'未記録'}"><span class="t">${q===0?pad(hr)+':00':':'+pad(q*15)}</span><span class="blk">${lab}</span></button>`;
+  }
+  $('#grid').innerHTML=h;
+  const n=d.slots.filter(Boolean).length;
+  $('#sumL').innerHTML=`記録 <b class="mono">${fmtH(n/4)}</b> / 24h`;
+  const deep=d.slots.filter(s=>s==='deep').length/4;
+  $('#sumR').innerHTML=deep?`集中作業 <b class="mono">${fmtH(deep)}</b>`:'';
+  renderPalette();
+}
+function renderPalette(){
+  $('#chips').innerHTML=CATS.map(c=>`<button class="chip" style="--cc:var(--k-${c.k})" data-k="${c.k}" aria-pressed="${sel===c.k}"><i></i>${c.n}</button>`).join('')
+    +`<button class="chip erase" data-k="erase" aria-pressed="${sel==='erase'}"><i></i>消す</button>`;
+  const name=sel==='erase'?'消す':CMAP[sel].n;
+  $('#hint').textContent=anchor!==null?`終わりの枠をタップで「${name}」を範囲で塗る`:'枠をタップ。続けて別の枠をタップすると間を塗ります';
+}
+function tapSlot(i){
+  const d=day(cur),v=sel==='erase'?'':sel;
+  if(anchor!==null&&anchor!==i){const a=Math.min(anchor,i),b=Math.max(anchor,i);for(let j=a;j<=b;j++)d.slots[j]=v;anchor=null}
+  else if(anchor===i){anchor=null}
+  else{d.slots[i]=v;anchor=i}
+  clearTimeout(anchorT);if(anchor!==null)anchorT=setTimeout(()=>{anchor=null;if(view==='day'&&dayTab==='time')renderTime()},20000);
+  change(cur);renderTime();
+}
+function scrollToNow(){
+  requestAnimationFrame(()=>{
+    const i=cur===today()?Math.max(0,slotNow()-6):(()=>{const d=peek(cur);const f=d?d.slots.findIndex((s,j)=>s&&s!=='sleep'&&j>=16):-1;return f>0?Math.max(0,f-2):28})();
+    const el=document.querySelector(`.sl[data-i="${i}"]`);
+    if(el){const y=el.getBoundingClientRect().top+window.scrollY-$('.top').offsetHeight-12;window.scrollTo({top:Math.max(0,y)})}
+  });
+}
+$('#grid').addEventListener('click',e=>{const b=e.target.closest('.sl');if(b)tapSlot(+b.dataset.i)});
+$('#chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;sel=b.dataset.k;anchor=null;savePrefs();renderTime()});
+$('#nowBtn').addEventListener('click',()=>{if(sel==='erase')return;cur=today();renderHeader();const i=slotNow();day(cur).slots[i]=sel;anchor=null;change(cur);renderTime();scrollToNow()});
+
+/* ---------- day: condition ---------- */
+function buildCond(){
+  const seg=(id,words)=>{$(id).innerHTML=words.map((w,i)=>`<button data-v="${i+1}"><b>${i+1}</b>${w}</button>`).join('')};
+  seg('#mood',MOODW);seg('#focus',FOCW);
+  $('#syms').innerHTML=SYMS.map(s=>`<div><div class="lbl">${s.n}</div><div class="seg s4 sym" data-s="${s.k}">${LV.map((w,i)=>`<button data-v="${i}" style="--lv:${i}">${w}</button>`).join('')}</div></div>`).join('');
+  const tags=(id,list)=>{$(id).innerHTML=list.map(t=>`<button class="tag" data-t="${esc(t)}">${esc(t)}</button>`).join('')};
+  tags('#tagsFood',FOOD);tags('#tagsLife',LIFE);
+
+  for(const k of['bed','wake']){const el=$('#'+k);const f=()=>{const d=day(cur);if(d[k]===el.value)return;d[k]=el.value;change(cur);renderCond()};el.addEventListener('change',f);el.addEventListener('blur',f)}
+  $('#slMinus').onclick=()=>bumpSleep(-.5);$('#slPlus').onclick=()=>bumpSleep(.5);
+  $('#slNote').addEventListener('click',e=>{if(e.target.closest('.linkbtn')){day(cur).sleep=null;change(cur);renderCond()}});
+  $('#paintSleep').onclick=paintSleep;
+  const pick=(id,key)=>$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=day(cur),v=+b.dataset.v;d[key]=d[key]===v?0:v;change(cur);renderCond()});
+  pick('#mood','mood');pick('#focus','focus');
+  $('#syms').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=b.parentElement.dataset.s;day(cur).sym[k]=+b.dataset.v;change(cur);renderCond()});
+  const tg=e=>{const b=e.target.closest('.tag');if(!b)return;const d=day(cur),t=b.dataset.t,i=d.tags.indexOf(t);i<0?d.tags.push(t):d.tags.splice(i,1);change(cur);renderCond()};
+  $('#tagsFood').addEventListener('click',tg);$('#tagsLife').addEventListener('click',tg);
+  for(const m of['b','l','d','s'])$('#m-'+m).addEventListener('input',e=>{day(cur).meals[m]=e.target.value;change(cur)});
+  $('#diary').addEventListener('input',e=>{day(cur).diary=e.target.value;change(cur)});
+}
+function bumpSleep(dv){const d=day(cur);const base=d.sleep!=null?d.sleep:(bwSleep(d)??autoSleep(cur)??7);d.sleep=Math.min(14,Math.max(0,Math.round((base+dv)*2)/2));change(cur);renderCond()}
+function paintSleep(){
+  const d=day(cur);if(!d.bed||!d.wake)return;
+  const q=t=>Math.min(96,Math.round(hm(t)/15));
+  const b=q(d.bed),w=q(d.wake);
+  if(hm(d.bed)>=720){const y=day(addDays(cur,-1));for(let j=b;j<96;j++)y.slots[j]='sleep';change(y.date);for(let j=0;j<w;j++)d.slots[j]='sleep'}
+  else for(let j=b;j<w;j++)d.slots[j]='sleep';
+  change(cur);const btn=$('#paintSleep');btn.textContent='塗りました';setTimeout(()=>{btn.textContent='この睡眠を「時間」に塗る'},1800);
+}
+function renderCond(){
+  const d=day(cur),bw=bwSleep(d),auto=autoSleep(cur);
+  const setV=(el,v)=>{if(document.activeElement!==el&&el.value!==v)el.value=v};
+  setV($('#bed'),d.bed);setV($('#wake'),d.wake);
+  const t=v=>v.toFixed(2).replace(/\.?0+$/,'');
+  if(d.sleep!=null){const alt=bw??auto;$('#slNum').textContent=t(d.sleep);$('#slNote').innerHTML=alt!=null&&alt!==d.sleep?`手入力 ・${bw!=null?'就寝・起床':'時間の記録'}からは ${t(alt)}h ・<button class="linkbtn">そちらを使う</button>`:'手入力'}
+  else if(bw!=null){$('#slNum').textContent=t(bw);$('#slNote').textContent='就寝・起床の時刻から計算'}
+  else if(auto!=null){$('#slNum').textContent=t(auto);$('#slNote').textContent='「時間」の睡眠の記録から計算（前日の夜を含む）'}
+  else{$('#slNum').textContent='–';$('#slNote').textContent='就寝・起床を入れると自動で計算します'}
+  $('#paintSleep').disabled=!(d.bed&&d.wake);
+  const mark=(id,v)=>$(id).querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.v===v));
+  mark('#mood',d.mood);mark('#focus',d.focus);
+  document.querySelectorAll('#syms .seg').forEach(s=>s.querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.v===d.sym[s.dataset.s]&&d.sym[s.dataset.s]>0)));
+  document.querySelectorAll('.tag').forEach(b=>b.classList.toggle('on',d.tags.includes(b.dataset.t)));
+  for(const m of['b','l','d','s'])setV($('#m-'+m),d.meals[m]);
+  setV($('#diary'),d.diary);
+}
+
+/* ---------- review ---------- */
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+function renderReview(){
+  const d14=[...Array(14)].map((_,i)=>addDays(cur,i-13)),d7=d14.slice(7);
+  const vals=(ds,f)=>ds.map(f).filter(v=>v!=null&&v!==0);
+  const sl=avg(vals(d7,sleepOf)),mo=avg(vals(d7,x=>peek(x)?.mood||null)),fo=avg(vals(d7,x=>peek(x)?.focus||null));
+  const f1=v=>v==null?'–':v.toFixed(1);
+  let h=`<h2>直近7日の平均</h2><div class="kpis">
+    <div class="kpi"><small>睡眠</small><b>${f1(sl)}</b><span>h</span></div>
+    <div class="kpi"><small>気分</small><b>${f1(mo)}</b><span>/5</span></div>
+    <div class="kpi"><small>集中</small><b>${f1(fo)}</b><span>/5</span></div></div>`;
+  h+=`<h2>時間の使い方（7日）</h2><div class="bars">`;
+  for(const ds of d7){
+    const d=peek(ds),dt=parse(ds);let g=[];
+    if(d&&d.slots.some(Boolean)){let i=0;while(i<96){let j=i;while(j<96&&d.slots[j]===d.slots[i])j++;const c=d.slots[i]?`var(--k-${d.slots[i]})`:'transparent';g.push(`${c} ${(i/96*100).toFixed(3)}% ${(j/96*100).toFixed(3)}%`);i=j}}
+    h+=`<button class="brow" data-go="${ds}" aria-label="${dateLabel(ds)}を開く"><span class="dl${ds===cur?' cur':''}">${dt.getMonth()+1}/${dt.getDate()} ${DOW[dt.getDay()]}</span><span class="bar" style="${g.length?`background:linear-gradient(to right,${g.join(',')}),var(--surface2)`:''}"></span></button>`;
+  }
+  h+=`</div><div class="ticks"><span></span><div><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div></div>`;
+  const cnt={};let nd=0;
+  for(const ds of d7){const d=peek(ds);if(!d||!d.slots.some(Boolean))continue;nd++;for(const s of d.slots)if(s)cnt[s]=(cnt[s]||0)+1}
+  const tots=CATS.filter(c=>cnt[c.k]).map(c=>({...c,v:cnt[c.k]/4/nd})).sort((a,b)=>b.v-a.v);
+  if(tots.length){const mx=tots[0].v;
+    h+=`<h2>1日あたりの平均（記録した${nd}日）</h2><div class="tot">`+tots.map(t=>`<div class="trow" style="--cc:var(--k-${t.k})"><span>${t.n}</span><span class="tb" style="width:${Math.max(3,t.v/mx*100)}%"></span><span class="tv">${t.v.toFixed(1)}h</span></div>`).join('')+`</div>`;}
+  const rows=[
+    {n:'睡眠',f:ds=>sleepOf(ds),fmt:v=>v.toFixed(v%1?1:0),col:v=>v<6?`color-mix(in srgb,var(--bad) 55%,var(--surface2))`:v<7?`color-mix(in srgb,var(--warn) 50%,var(--surface2))`:`color-mix(in srgb,var(--good) 55%,var(--surface2))`},
+    {n:'気分',f:ds=>peek(ds)?.mood||null,fmt:v=>v,col:v=>`color-mix(in srgb,var(--good) ${v*14}%,var(--surface2))`},
+    {n:'集中',f:ds=>peek(ds)?.focus||null,fmt:v=>v,col:v=>`color-mix(in srgb,var(--good) ${v*14}%,var(--surface2))`},
+    ...SYMS.map(s=>({n:s.n.replace('・頭痛',''),f:ds=>hasData(peek(ds))?peek(ds).sym[s.k]:null,fmt:v=>v||'',col:v=>v?`color-mix(in srgb,var(--bad) ${v*24}%,var(--surface2))`:''}))
+  ];
+  h+=`<h2>コンディション（14日）</h2><div class="heatwrap"><table class="heat"><tr><th class="rl"></th>${d14.map(ds=>{const x=parse(ds);return `<th>${x.getDate()}<br>${DOW[x.getDay()]}</th>`}).join('')}</tr>`;
+  for(const r of rows){h+=`<tr><th class="rl">${r.n}</th>`+d14.map(ds=>{const v=r.f(ds);return v==null?`<td class="na">·</td>`:`<td style="background:${r.col(v)}">${r.fmt(v)}</td>`}).join('')+`</tr>`}
+  h+=`</table></div>`;
+  const ins=insights();
+  h+=`<h2>気づき</h2>`;
+  h+=ins.length?`<ul class="ins">${ins.map(i=>`<li class="${i.pos?'pos':''}">${i.t}</li>`).join('')}</ul>`
+    :`<div class="empty">体調・睡眠・食事タグを数日つけると、ここに「片頭痛の日は睡眠が短い」「カフェインの日は眠気が強い」のような傾向が出てきます。目安は1〜2週間です。</div>`;
+  h+=`<p class="fine">記録から見えた傾向で、原因の断定ではありません。片頭痛や肌荒れが続くときは医療機関にも相談してください。</p>`;
+  const lb=lastBackup?new Date(lastBackup):null;
+  h+=`<h2>データ</h2><div class="card stack data">
+    <p>記録はこのiPhoneの中だけに保存されています。アプリを削除したり機種変更したりすると消えるので、月に1回ほど書き出して「ファイル」アプリやiCloud Driveに保存してください。</p>
+    <p>最後の書き出し：${lb?`${lb.getFullYear()}/${lb.getMonth()+1}/${lb.getDate()}`:'まだありません'}</p>
+    <div class="btns"><button class="btn" id="expBtn">バックアップを書き出す</button><button class="btn ghost" id="impBtn">読み込む</button></div>
+    <input type="file" id="impFile" accept=".json,application/json" hidden>
+    <p id="impMsg" aria-live="polite"></p></div>`;
+  $('#v-review').innerHTML=h;
+}
+function insights(){
+  const all=Object.keys(days).filter(k=>hasData(days[k])).sort();
+  const out=[];const f1=v=>v.toFixed(1);
+  for(const s of SYMS){
+    const yes=all.filter(k=>days[k].sym[s.k]>0),no=all.filter(k=>!days[k].sym[s.k]);
+    if(yes.length<2||no.length<2)continue;
+    const sy=avg(yes.map(sleepOf).filter(v=>v!=null)),sn=avg(no.map(sleepOf).filter(v=>v!=null));
+    if(sy!=null&&sn!=null&&Math.abs(sy-sn)>=.5)out.push({w:Math.abs(sy-sn),t:`${s.n}があった日（${yes.length}日）の睡眠は平均 ${f1(sy)}h、なかった日は ${f1(sn)}h。`});
+    const by=avg(yes.map(k=>hm(days[k].bed)).filter(v=>v!=null).map(v=>v<720?v+1440:v)),bn=avg(no.map(k=>hm(days[k].bed)).filter(v=>v!=null).map(v=>v<720?v+1440:v));
+    if(by!=null&&bn!=null&&by-bn>=40){const f=v=>{v=Math.round(v)%1440;return pad(Math.floor(v/60))+':'+pad(v%60)};out.push({w:(by-bn)/60,t:`${s.n}があった日は前夜の就寝が平均 ${f(by)}、なかった日は ${f(bn)}。`})}
+    if(s.k!=='skin'){const fy=avg(yes.map(k=>days[k].focus).filter(Boolean)),fn=avg(no.map(k=>days[k].focus).filter(Boolean));
+      if(fy!=null&&fn!=null&&fn-fy>=.6)out.push({w:fn-fy,t:`${s.n}があった日は集中が平均 ${f1(fy)}（ない日 ${f1(fn)}）。`});}
+  }
+  for(const t of[...FOOD,...LIFE])for(const s of SYMS){
+    const tagOn=k=>{const src=s.k==='skin'?peek(addDays(k,-1)):days[k];return src?src.tags.includes(t):null};
+    const base=all.filter(k=>tagOn(k)!==null);
+    const on=base.filter(tagOn),off=base.filter(k=>!tagOn(k));
+    if(on.length<2||off.length<2)continue;
+    const a=avg(on.map(k=>days[k].sym[s.k])),b=avg(off.map(k=>days[k].sym[s.k]));
+    if(a-b>=.6)out.push({w:a-b,t:`${s.k==='skin'?'前日に':''}「${t}」がある日は${s.n}が平均 ${f1(a)}（ない日 ${f1(b)}・0〜3段階）。`});
+    if(b-a>=.6)out.push({w:b-a,pos:true,t:`${s.k==='skin'?'前日に':''}「${t}」がある日は${s.n}が軽め：平均 ${f1(a)}（ない日 ${f1(b)}）。`});
+  }
+  const withS=all.filter(k=>sleepOf(k)!=null&&days[k].focus);
+  const sh=withS.filter(k=>sleepOf(k)<6.5),lo=withS.filter(k=>sleepOf(k)>=6.5);
+  if(sh.length>=2&&lo.length>=2){const a=avg(sh.map(k=>days[k].focus)),b=avg(lo.map(k=>days[k].focus));
+    if(Math.abs(a-b)>=.5)out.push({w:Math.abs(a-b),pos:b>a,t:`睡眠6.5時間以上の日は集中が平均 ${f1(b)}、それ未満の日は ${f1(a)}。`});}
+  return out.sort((x,y)=>y.w-x.w).slice(0,6);
+}
+$('#v-review').addEventListener('click',e=>{
+  if(e.target.closest('#expBtn')){exportBackup();return}
+  if(e.target.closest('#impBtn')){$('#impFile').click();return}
+  const b=e.target.closest('[data-go]');if(b)openDay(b.dataset.go,'time')});
+$('#v-review').addEventListener('change',e=>{if(e.target.id==='impFile'&&e.target.files[0]){importBackup(e.target.files[0]);e.target.value=''}});
+
+setInterval(()=>{if(view==='day'&&dayTab==='time'&&cur===today()&&anchor===null)renderTime()},60000);
+
+loadLocal();buildCond();render();
+if('serviceWorker' in navigator)window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
+</script>
+</body>
+</html>
