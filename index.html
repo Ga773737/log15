@@ -22,6 +22,7 @@
   --sun:#C2513F; --sat:#3E6CA8;
   --k-sleep:#8E9BD6; --k-nap:#B6BFEA; --k-deep:#4FA58E; --k-work:#A3D3C3; --k-talk:#8DB8DD; --k-meal:#EDBE6A;
   --k-break:#D3CCBC; --k-move:#BBA3D8; --k-exercise:#E8907F; --k-chores:#D9BB96; --k-hobby:#EFA6C2; --k-idle:#B9BEBC;
+  --k-bath:#9ED6E3; --k-social:#F2B48A; --k-outing:#A8D88E; --k-clinic:#9FB7C9; --k-draw:#E3C4F0; --k-makeup:#F7C6D0; --k-pa:#E8D44D; --k-read:#DCE58F; --k-other:#DDD6EA;
   --f-body:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
   --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   --r:10px;
@@ -32,6 +33,7 @@
   --sun:#E5806E; --sat:#7EA6DB;
   --k-sleep:#4D5A9C; --k-nap:#5E68A3; --k-deep:#2C7864; --k-work:#4B8273; --k-talk:#3E6E95; --k-meal:#A27A27;
   --k-break:#6A6556; --k-move:#6C5990; --k-exercise:#9E4C40; --k-chores:#836748; --k-hobby:#9A5571; --k-idle:#565C5A;
+  --k-bath:#2F7484; --k-social:#9A5A35; --k-outing:#4F7E3A; --k-clinic:#4A6275; --k-draw:#7A4F8E; --k-makeup:#9B5D6B; --k-pa:#8C7E14; --k-read:#7A8030; --k-other:#585270;
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#121715; --surface:#1A211F; --surface2:#202926; --ink:#E5ECE9; --muted:#93A19B; --line:#2D3734; --line2:#3E4A46;
@@ -39,6 +41,7 @@
   --sun:#E5806E; --sat:#7EA6DB;
   --k-sleep:#4D5A9C; --k-nap:#5E68A3; --k-deep:#2C7864; --k-work:#4B8273; --k-talk:#3E6E95; --k-meal:#A27A27;
   --k-break:#6A6556; --k-move:#6C5990; --k-exercise:#9E4C40; --k-chores:#836748; --k-hobby:#9A5571; --k-idle:#565C5A;
+  --k-bath:#2F7484; --k-social:#9A5A35; --k-outing:#4F7E3A; --k-clinic:#4A6275; --k-draw:#7A4F8E; --k-makeup:#9B5D6B; --k-pa:#8C7E14; --k-read:#7A8030; --k-other:#585270;
   color-scheme:dark}
 *{box-sizing:border-box}
 html{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -68,7 +71,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .tabs .tb button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
 
 main{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 40px}
-body.has-pal main{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+body.has-pal main{padding-bottom:calc(var(--palh,220px) + 24px)}
 h2{font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--muted);margin:22px 0 8px}
 h2:first-child{margin-top:4px}
 
@@ -138,9 +141,27 @@ h2:first-child{margin-top:4px}
   padding-top:8px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
 .palette .in{max-width:560px;margin:0 auto}
 .hintrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;padding-inline:4px}
-#hint{font-size:12px;color:var(--muted);min-width:0}
+#hint{display:block;font-size:11.5px;color:var(--muted);margin-top:4px;padding-inline:4px}
 #nowBtn{flex:none;font-size:12.5px;font-weight:700;color:var(--on-accent);background:var(--accent);padding:6px 12px;border-radius:999px}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips{display:grid;grid-template-rows:repeat(3,auto);grid-auto-flow:column;grid-auto-columns:max-content;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin-inline:-4px;padding:0 4px 2px}
+.chips.few{grid-template-rows:repeat(2,auto)}
+.chips::-webkit-scrollbar{display:none}
+.mode{display:inline-flex;background:var(--surface2);border:1px solid var(--line);border-radius:999px;padding:2px}
+.mode button{padding:5px 14px;border-radius:999px;font-size:13px;color:var(--muted);font-weight:500}
+.mode button[aria-selected="true"]{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.14)}
+.otherrow{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-inline:4px}
+.otherrow label{font-size:12px;color:var(--muted);white-space:nowrap}
+.otherrow input{padding:6px 10px}
+.chip.stp{gap:5px;padding:5px 11px 5px 8px}
+.chip.stp em{font-style:normal;font-size:18px;line-height:1}
+.chip.stp[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 16%,var(--surface));border-color:var(--accent);color:var(--ink);font-weight:700}
+.sl .blk b{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.sl .st{margin-left:auto;font-size:16px;letter-spacing:2px;flex:none;line-height:1}
+.sl.other .blk{background:repeating-linear-gradient(135deg,var(--cc) 0 8px,color-mix(in srgb,var(--cc) 70%,var(--surface)) 8px 16px)}
+.stc{display:flex;flex-wrap:wrap;gap:6px}
+.stc span{display:inline-flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 11px 4px 8px;font-size:12.5px}
+.stc em{font-style:normal;font-size:16px}
+.stc b{font-weight:500;margin-left:2px}
 .chip{display:flex;align-items:center;gap:6px;padding:6px 10px 6px 8px;border-radius:999px;border:1px solid var(--line);font-size:13px;background:var(--surface)}
 .chip i{width:12px;height:12px;border-radius:3px;background:var(--cc);flex:none}
 .chip[aria-pressed="true"]{background:var(--cc);border-color:var(--cc);color:var(--on-cat);font-weight:700}
@@ -256,7 +277,9 @@ table.heat{border-collapse:separate;border-spacing:2px;font-size:11px}
     </div>
 
     <h2>体調</h2>
-    <div class="card stack" id="syms"></div>
+    <div class="card stack"><div class="stack" id="syms"></div>
+      <div><div class="sub">肌の状態・ケア（あてはまるものをタップ）</div><div class="tags" id="tagsSkin"></div>
+      <div class="sub">からだ・こころ</div><div class="tags" id="tagsBody"></div></div></div>
 
     <h2>食べたもの</h2>
     <div class="card">
@@ -281,19 +304,28 @@ table.heat{border-collapse:separate;border-spacing:2px;font-size:11px}
 
 <div class="palette" id="palette" hidden>
   <div class="in">
-    <div class="hintrow"><span id="hint"></span><button id="nowBtn">今の15分に記録</button></div>
+    <div class="hintrow"><div class="mode" role="tablist"><button data-mode="act" role="tab">行動</button><button data-mode="stamp" role="tab">スタンプ</button></div><button id="nowBtn">今の15分に記録</button></div>
+    <div class="otherrow" id="otherRow" hidden><label for="otherText">その他の内容</label><input type="text" id="otherText" placeholder="例：役所の手続き" maxlength="40"></div>
     <div class="chips" id="chips"></div>
+    <span id="hint"></span>
   </div>
 </div>
 
 <script>
 const CATS=[
-  {k:'sleep',n:'睡眠'},{k:'nap',n:'仮眠'},{k:'deep',n:'集中作業'},{k:'work',n:'作業'},{k:'talk',n:'会議・連絡'},
-  {k:'meal',n:'食事'},{k:'break',n:'休憩'},{k:'move',n:'移動'},{k:'exercise',n:'運動'},{k:'chores',n:'家事・身支度'},
-  {k:'hobby',n:'趣味'},{k:'idle',n:'ダラダラ'}];
+  {k:'sleep',n:'睡眠'},{k:'nap',n:'仮眠'},{k:'deep',n:'集中作業'},{k:'work',n:'作業'},{k:'talk',n:'会議・連絡'},{k:'social',n:'交流'},
+  {k:'meal',n:'食事'},{k:'break',n:'休憩'},{k:'bath',n:'風呂'},{k:'makeup',n:'メイク'},{k:'chores',n:'家事・身支度'},{k:'move',n:'移動'},
+  {k:'outing',n:'おでかけ'},{k:'clinic',n:'通院'},{k:'exercise',n:'運動'},{k:'hobby',n:'趣味'},{k:'draw',n:'絵を描く'},{k:'read',n:'読書'},
+  {k:'pa',n:'パ'},{k:'idle',n:'ダラダラ'},{k:'other',n:'その他'}];
+const STAMPS=[{k:'candy',e:'🍬',n:'軽い間食'},{k:'donut',e:'🍩',n:'多め間食'},{k:'coffee',e:'☕',n:'カフェイン'},{k:'wine',e:'🍷',n:'お酒'},
+  {k:'zzz',e:'😴',n:'眠い'},{k:'pc',e:'💻',n:'画面凝視'},{k:'slot',e:'🎰',n:'パチスロ'},{k:'call',e:'📞',n:'通話'}];
+const SMAP=Object.fromEntries(STAMPS.map(x=>[x.k,x]));
+const SKIN=['新入りニキビ','古参ニキビ','かゆみ','乾燥','コメド出現','ピーリング','パック'];
+const BODY=['肩こり','首痛','腰痛','筋肉痛','目の不調','耳が変','大鬱','ちょい鬱','やる気ゼロ','めちゃ元気'];
+const stOf=x=>x?x.split(' ').filter(k=>SMAP[k]):[];
 const CMAP=Object.fromEntries(CATS.map(c=>[c.k,c]));
 const FOOD=['カフェイン','甘いもの','揚げ物・脂っこい','乳製品','アルコール','辛いもの','野菜しっかり','水分たっぷり','夜遅い食事','食事抜き'];
-const LIFE=['気圧・天気の崩れ','生理中','運動した','湯船に入った','夜ふかし','長時間の画面','ストレス大'];
+const LIFE=['気圧・天気の崩れ','生理中','運動した','湯船に入った','夜ふかし','長時間の画面','ストレス大','騒音・人混み','パチ屋'];
 const SYMS=[{k:'skin',n:'肌荒れ',s:'肌'},{k:'head',n:'片頭痛・頭痛',s:'頭'},{k:'sleepy',n:'日中の眠気',s:'眠'}];
 const LV=['なし','軽い','中','強い'];
 const MOODW=['最悪','低め','ふつう','良い','最高'];
@@ -314,17 +346,20 @@ const fmtH=v=>{const h=Math.floor(v),m=Math.round((v-h)*60);return m?`${h}h${m}m
 const LS='log15:v1',LSP='log15:prefs';
 let days={};
 let cur=today(),view='cal',dayTab='time',sel='deep',anchor=null,anchorT=null;
+let pmode='act',stampSel='coffee',otherText='',lastPaint=null;
 let mon=cur.slice(0,7);
 
-function blank(date){return{date,slots:Array(96).fill(''),bed:'',wake:'',sleep:null,mood:0,focus:0,sym:{skin:0,head:0,sleepy:0},tags:[],meals:{b:'',l:'',d:'',s:''},diary:'',updatedAt:0}}
+function blank(date){return{date,slots:Array(96).fill(''),otext:Array(96).fill(''),stamps:Array(96).fill(''),bed:'',wake:'',sleep:null,mood:0,focus:0,sym:{skin:0,head:0,sleepy:0},tags:[],meals:{b:'',l:'',d:'',s:''},diary:'',updatedAt:0}}
 function norm(src,date){const s=src||{};const o=blank(date||s.date||'');
   for(const k of['bed','wake','sleep','mood','focus','diary','updatedAt'])if(s[k]!==undefined)o[k]=s[k];
   if(Array.isArray(s.slots))o.slots=o.slots.map((_,i)=>typeof s.slots[i]==='string'?s.slots[i]:'');
+  if(Array.isArray(s.otext))o.otext=o.otext.map((_,i)=>typeof s.otext[i]==='string'?s.otext[i]:'');
+  if(Array.isArray(s.stamps))o.stamps=o.stamps.map((_,i)=>typeof s.stamps[i]==='string'?s.stamps[i]:'');
   o.sym=Object.assign({skin:0,head:0,sleepy:0},s.sym||{});o.meals=Object.assign({b:'',l:'',d:'',s:''},s.meals||{});
   o.tags=Array.isArray(s.tags)?s.tags.slice():[];return o}
 const peek=d=>days[d];
 const day=d=>days[d]||(days[d]=blank(d));
-const hasData=d=>!!d&&(d.slots.some(Boolean)||d.bed||d.wake||d.mood||d.focus||d.sleep!=null||d.sym.skin||d.sym.head||d.sym.sleepy||d.tags.length||d.diary||Object.values(d.meals).some(Boolean));
+const hasData=d=>!!d&&(d.slots.some(Boolean)||d.stamps.some(Boolean)||d.bed||d.wake||d.mood||d.focus||d.sleep!=null||d.sym.skin||d.sym.head||d.sym.sleepy||d.tags.length||d.diary||Object.values(d.meals).some(Boolean));
 
 /* sleep: manual > bed/wake > painted slots */
 function bwSleep(d){if(!d||!d.bed||!d.wake)return null;let x=hm(d.wake)-hm(d.bed);if(x<=0)x+=1440;return Math.round(x/15)/4}
@@ -337,12 +372,12 @@ const sleepOf=date=>{const d=peek(date);if(d&&d.sleep!=null)return d.sleep;retur
 /* ---------- storage: this iPhone only ---------- */
 function loadLocal(){
   try{const r=JSON.parse(localStorage.getItem(LS)||'{}');for(const k in r)days[k]=norm(r[k],k)}catch(e){}
-  try{const p=JSON.parse(localStorage.getItem(LSP)||'{}');if(p.sel&&(CMAP[p.sel]||p.sel==='erase'))sel=p.sel;if(p.dayTab==='cond')dayTab='cond';if(p.lastBackup)lastBackup=p.lastBackup}catch(e){}
+  try{const p=JSON.parse(localStorage.getItem(LSP)||'{}');if(p.sel&&(CMAP[p.sel]||p.sel==='erase'))sel=p.sel;if(p.dayTab==='cond')dayTab='cond';if(p.lastBackup)lastBackup=p.lastBackup;if(p.pmode==='stamp')pmode='stamp';if(SMAP[p.stampSel])stampSel=p.stampSel;if(typeof p.otherText==='string')otherText=p.otherText}catch(e){}
 }
 let lastBackup=0,saveFail=false;
 function writeLocal(){try{const o={};for(const k in days)if(hasData(days[k])||days[k].updatedAt)o[k]=days[k];localStorage.setItem(LS,JSON.stringify(o));saveFail=false}catch(e){saveFail=true}}
 let lsT;function saveLocal(){clearTimeout(lsT);lsT=setTimeout(writeLocal,250)}
-function savePrefs(){try{localStorage.setItem(LSP,JSON.stringify({sel,dayTab,lastBackup}))}catch(e){}}
+function savePrefs(){try{localStorage.setItem(LSP,JSON.stringify({sel,dayTab,lastBackup,pmode,stampSel,otherText}))}catch(e){}}
 function change(date){day(date).updatedAt=Date.now();saveLocal()}
 function setSync(){}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){clearTimeout(lsT);writeLocal();savePrefs()}});
@@ -461,9 +496,11 @@ function summaryCard(ds){
     const meals=['b','l','d','s'].map((k,i)=>d.meals[k]?`${'朝昼夜間'[i]}：${esc(d.meals[k])}`:'').filter(Boolean);
     if(meals.length)rows.push(['食事',meals.join(' / ')]);
     if(d.tags.length)rows.push(['タグ',d.tags.map(esc).join('、')]);
+    const sc={};d.stamps.forEach(x=>stOf(x).forEach(k=>sc[k]=(sc[k]||0)+1));
+    const sl2=STAMPS.filter(x=>sc[x.k]);if(sl2.length)rows.push(['スタンプ',sl2.map(x=>`${x.e}×${sc[x.k]}`).join('　')]);
     if(rows.length)h+=`<dl class="kv">${rows.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>`;
     const c={};for(const x of d.slots)if(x)c[x]=(c[x]||0)+1;
-    const top=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const top=Object.entries(c).filter(([k])=>CMAP[k]).sort((a,b)=>b[1]-a[1]).slice(0,5);
     if(top.length)h+=`<div class="acts">${top.map(([k,n])=>`<span style="--cc:var(--k-${k})"><i></i>${CMAP[k].n} <span class="mono">${fmtH(n/4)}</span></span>`).join('')}</div>`;
     if(d.diary)h+=`<div class="dia">${esc(d.diary)}</div>`;
   }
@@ -478,34 +515,57 @@ $('#v-cal').addEventListener('click',e=>{
 });
 
 /* ---------- day: time (one vertical column) ---------- */
-function renderTime(){
+function renderTime(){renderTimeGrid();renderPalette()}
+function renderTimeGrid(){
   const d=day(cur),nowI=cur===today()?slotNow():-1;let h='';
   for(let i=0;i<96;i++){
     const hr=Math.floor(i/4),q=i%4,k=d.slots[i],c=CMAP[k];
-    const cont=c&&i>0&&d.slots[i-1]===k,start=c&&!cont;
+    const same=(x,y)=>d.slots[x]===d.slots[y]&&(d.slots[x]!=='other'||d.otext[x]===d.otext[y]);
+    const cont=c&&i>0&&same(i-1,i),start=c&&!cont;
+    const nm=c?(k==='other'&&d.otext[i]?esc(d.otext[i]):c.n):'';
     let lab='';
-    if(start){let j=i;while(j<96&&d.slots[j]===k)j++;lab=`<b>${c.n}</b><em>${fmtH((j-i)/4)}</em>`}
-    const cls=['sl','q'+q,c?'on':'',cont?'cont':'',i===anchor?'anchor':'',i===nowI?'now':''].join(' ');
-    h+=`<button class="${cls}" data-i="${i}"${c?` style="--cc:var(--k-${k})"`:''} aria-label="${hr}時${q*15}分 ${c?c.n:'未記録'}"><span class="t">${q===0?pad(hr)+':00':':'+pad(q*15)}</span><span class="blk">${lab}</span></button>`;
+    if(start){let j=i;while(j<96&&same(j,i))j++;lab=`<b>${nm}</b><em>${fmtH((j-i)/4)}</em>`}
+    const st=stOf(d.stamps[i]);
+    if(st.length)lab+=`<span class="st">${st.map(x=>SMAP[x].e).join('')}</span>`;
+    const cls=['sl','q'+q,c?'on':'',k==='other'?'other':'',cont?'cont':'',i===anchor?'anchor':'',i===nowI?'now':''].join(' ');
+    h+=`<button class="${cls}" data-i="${i}"${c?` style="--cc:var(--k-${k})"`:''} aria-label="${hr}時${q*15}分 ${c?nm:'未記録'}${st.length?' '+st.map(x=>SMAP[x].n).join('、'):''}"><span class="t">${q===0?pad(hr)+':00':':'+pad(q*15)}</span><span class="blk">${lab}</span></button>`;
   }
   $('#grid').innerHTML=h;
   const n=d.slots.filter(Boolean).length;
   $('#sumL').innerHTML=`記録 <b class="mono">${fmtH(n/4)}</b> / 24h`;
   const deep=d.slots.filter(s=>s==='deep').length/4;
   $('#sumR').innerHTML=deep?`集中作業 <b class="mono">${fmtH(deep)}</b>`:'';
-  renderPalette();
 }
 function renderPalette(){
-  $('#chips').innerHTML=CATS.map(c=>`<button class="chip" style="--cc:var(--k-${c.k})" data-k="${c.k}" aria-pressed="${sel===c.k}"><i></i>${c.n}</button>`).join('')
-    +`<button class="chip erase" data-k="erase" aria-pressed="${sel==='erase'}"><i></i>消す</button>`;
-  const name=sel==='erase'?'消す':CMAP[sel].n;
-  $('#hint').textContent=anchor!==null?`終わりの枠をタップで「${name}」を範囲で塗る`:'枠をタップ。続けて別の枠をタップすると間を塗ります';
+  document.querySelectorAll('.mode button').forEach(b=>b.setAttribute('aria-selected',b.dataset.mode===pmode));
+  const ch=$('#chips');
+  if(pmode==='stamp'){
+    ch.classList.add('few');
+    ch.innerHTML=STAMPS.map(x=>`<button class="chip stp" data-s="${x.k}" aria-pressed="${stampSel===x.k}"><em>${x.e}</em>${x.n}</button>`).join('');
+    $('#otherRow').hidden=true;
+    $('#hint').textContent=`枠をタップすると ${SMAP[stampSel].e} を付ける・外す（1つの枠に何個でもOK）`;
+  }else{
+    ch.classList.remove('few');
+    ch.innerHTML=CATS.map(c=>`<button class="chip" style="--cc:var(--k-${c.k})" data-k="${c.k}" aria-pressed="${sel===c.k}"><i></i>${c.n}</button>`).join('')
+      +`<button class="chip erase" data-k="erase" aria-pressed="${sel==='erase'}"><i></i>消す</button>`;
+    $('#otherRow').hidden=sel!=='other';
+    const oi=$('#otherText');if(document.activeElement!==oi&&oi.value!==otherText)oi.value=otherText;
+    const name=sel==='erase'?'消す':CMAP[sel].n;
+    $('#hint').textContent=anchor!==null?`終わりの枠をタップで「${name}」を範囲で塗る`:'枠をタップ。続けて別の枠をタップすると間を塗ります。項目は横にスクロール';
+  }
+  requestAnimationFrame(measurePal);
 }
+function measurePal(){const p=$('#palette');if(p&&!p.hidden)document.documentElement.style.setProperty('--palh',p.offsetHeight+'px')}
+if(window.ResizeObserver)new ResizeObserver(measurePal).observe(document.getElementById('palette'));
+window.addEventListener('resize',measurePal);
 function tapSlot(i){
-  const d=day(cur),v=sel==='erase'?'':sel;
-  if(anchor!==null&&anchor!==i){const a=Math.min(anchor,i),b=Math.max(anchor,i);for(let j=a;j<=b;j++)d.slots[j]=v;anchor=null}
+  const d=day(cur);
+  if(pmode==='stamp'){const arr=stOf(d.stamps[i]),j=arr.indexOf(stampSel);j<0?arr.push(stampSel):arr.splice(j,1);d.stamps[i]=arr.join(' ');change(cur);renderTime();return}
+  const v=sel==='erase'?'':sel,txt=sel==='other'?otherText:'';
+  const paint=(a,b)=>{for(let j=a;j<=b;j++){d.slots[j]=v;d.otext[j]=txt}lastPaint=v==='other'?{date:cur,a,b}:null};
+  if(anchor!==null&&anchor!==i){paint(Math.min(anchor,i),Math.max(anchor,i));anchor=null}
   else if(anchor===i){anchor=null}
-  else{d.slots[i]=v;anchor=i}
+  else{paint(i,i);anchor=i}
   clearTimeout(anchorT);if(anchor!==null)anchorT=setTimeout(()=>{anchor=null;if(view==='day'&&dayTab==='time')renderTime()},20000);
   change(cur);renderTime();
 }
@@ -517,8 +577,18 @@ function scrollToNow(){
   });
 }
 $('#grid').addEventListener('click',e=>{const b=e.target.closest('.sl');if(b)tapSlot(+b.dataset.i)});
-$('#chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;sel=b.dataset.k;anchor=null;savePrefs();renderTime()});
-$('#nowBtn').addEventListener('click',()=>{if(sel==='erase')return;cur=today();renderHeader();const i=slotNow();day(cur).slots[i]=sel;anchor=null;change(cur);renderTime();scrollToNow()});
+$('#chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;if(b.dataset.s){stampSel=b.dataset.s}else{sel=b.dataset.k;if(sel!=='other')lastPaint=null}anchor=null;savePrefs();renderTime()});
+document.querySelector('.mode').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b)return;pmode=b.dataset.mode;anchor=null;savePrefs();renderTime()});
+$('#otherText').addEventListener('input',e=>{
+  otherText=e.target.value;savePrefs();
+  if(lastPaint&&lastPaint.date===cur){const d=day(cur);for(let j=lastPaint.a;j<=lastPaint.b;j++)if(d.slots[j]==='other')d.otext[j]=otherText;change(cur);renderTimeGrid()}
+});
+$('#nowBtn').addEventListener('click',()=>{
+  if(pmode==='act'&&sel==='erase')return;
+  cur=today();renderHeader();const i=slotNow(),d=day(cur);anchor=null;
+  if(pmode==='stamp'){const arr=stOf(d.stamps[i]);if(!arr.includes(stampSel))arr.push(stampSel);d.stamps[i]=arr.join(' ')}
+  else{d.slots[i]=sel;d.otext[i]=sel==='other'?otherText:'';lastPaint=sel==='other'?{date:cur,a:i,b:i}:null}
+  change(cur);renderTime();scrollToNow()});
 
 /* ---------- day: condition ---------- */
 function buildCond(){
@@ -526,7 +596,7 @@ function buildCond(){
   seg('#mood',MOODW);seg('#focus',FOCW);
   $('#syms').innerHTML=SYMS.map(s=>`<div><div class="lbl">${s.n}</div><div class="seg s4 sym" data-s="${s.k}">${LV.map((w,i)=>`<button data-v="${i}" style="--lv:${i}">${w}</button>`).join('')}</div></div>`).join('');
   const tags=(id,list)=>{$(id).innerHTML=list.map(t=>`<button class="tag" data-t="${esc(t)}">${esc(t)}</button>`).join('')};
-  tags('#tagsFood',FOOD);tags('#tagsLife',LIFE);
+  tags('#tagsFood',FOOD);tags('#tagsLife',LIFE);tags('#tagsSkin',SKIN);tags('#tagsBody',BODY);
 
   for(const k of['bed','wake']){const el=$('#'+k);const f=()=>{const d=day(cur);if(d[k]===el.value)return;d[k]=el.value;change(cur);renderCond()};el.addEventListener('change',f);el.addEventListener('blur',f)}
   $('#slMinus').onclick=()=>bumpSleep(-.5);$('#slPlus').onclick=()=>bumpSleep(.5);
@@ -536,7 +606,7 @@ function buildCond(){
   pick('#mood','mood');pick('#focus','focus');
   $('#syms').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=b.parentElement.dataset.s;day(cur).sym[k]=+b.dataset.v;change(cur);renderCond()});
   const tg=e=>{const b=e.target.closest('.tag');if(!b)return;const d=day(cur),t=b.dataset.t,i=d.tags.indexOf(t);i<0?d.tags.push(t):d.tags.splice(i,1);change(cur);renderCond()};
-  $('#tagsFood').addEventListener('click',tg);$('#tagsLife').addEventListener('click',tg);
+  $('#tagsFood').addEventListener('click',tg);$('#tagsLife').addEventListener('click',tg);$('#tagsSkin').addEventListener('click',tg);$('#tagsBody').addEventListener('click',tg);
   for(const m of['b','l','d','s'])$('#m-'+m).addEventListener('input',e=>{day(cur).meals[m]=e.target.value;change(cur)});
   $('#diary').addEventListener('input',e=>{day(cur).diary=e.target.value;change(cur)});
 }
@@ -590,6 +660,9 @@ function renderReview(){
   const tots=CATS.filter(c=>cnt[c.k]).map(c=>({...c,v:cnt[c.k]/4/nd})).sort((a,b)=>b.v-a.v);
   if(tots.length){const mx=tots[0].v;
     h+=`<h2>1日あたりの平均（記録した${nd}日）</h2><div class="tot">`+tots.map(t=>`<div class="trow" style="--cc:var(--k-${t.k})"><span>${t.n}</span><span class="tb" style="width:${Math.max(3,t.v/mx*100)}%"></span><span class="tv">${t.v.toFixed(1)}h</span></div>`).join('')+`</div>`;}
+  const sc={};for(const ds of d7){const d=peek(ds);if(d)d.stamps.forEach(x=>stOf(x).forEach(k=>sc[k]=(sc[k]||0)+1))}
+  const sl3=STAMPS.filter(x=>sc[x.k]);
+  if(sl3.length)h+=`<h2>スタンプ（7日の合計）</h2><div class="stc">${sl3.map(x=>`<span><em>${x.e}</em>${x.n}<b class="mono">${sc[x.k]}</b></span>`).join('')}</div>`;
   const rows=[
     {n:'睡眠',f:ds=>sleepOf(ds),fmt:v=>v.toFixed(v%1?1:0),col:v=>v<6?`color-mix(in srgb,var(--bad) 55%,var(--surface2))`:v<7?`color-mix(in srgb,var(--warn) 50%,var(--surface2))`:`color-mix(in srgb,var(--good) 55%,var(--surface2))`},
     {n:'気分',f:ds=>peek(ds)?.mood||null,fmt:v=>v,col:v=>`color-mix(in srgb,var(--good) ${v*14}%,var(--surface2))`},
@@ -626,19 +699,31 @@ function insights(){
     if(s.k!=='skin'){const fy=avg(yes.map(k=>days[k].focus).filter(Boolean)),fn=avg(no.map(k=>days[k].focus).filter(Boolean));
       if(fy!=null&&fn!=null&&fn-fy>=.6)out.push({w:fn-fy,t:`${s.n}があった日は集中が平均 ${f1(fy)}（ない日 ${f1(fn)}）。`});}
   }
-  for(const t of[...FOOD,...LIFE])for(const s of SYMS){
-    const tagOn=k=>{const src=s.k==='skin'?peek(addDays(k,-1)):days[k];return src?src.tags.includes(t):null};
+  const feats=[...FOOD,...LIFE].map(t=>({n:`「${t}」`,on:d=>d.tags.includes(t)}))
+    .concat(STAMPS.filter(x=>x.k!=='zzz').map(x=>({n:`${x.e}（${x.n}）`,on:d=>d.stamps.some(y=>stOf(y).includes(x.k))})));
+  for(const f of feats)for(const s of SYMS){
+    const tagOn=k=>{const src=s.k==='skin'?peek(addDays(k,-1)):days[k];return src?f.on(src):null};
     const base=all.filter(k=>tagOn(k)!==null);
     const on=base.filter(tagOn),off=base.filter(k=>!tagOn(k));
     if(on.length<2||off.length<2)continue;
     const a=avg(on.map(k=>days[k].sym[s.k])),b=avg(off.map(k=>days[k].sym[s.k]));
-    if(a-b>=.6)out.push({w:a-b,t:`${s.k==='skin'?'前日に':''}「${t}」がある日は${s.n}が平均 ${f1(a)}（ない日 ${f1(b)}・0〜3段階）。`});
-    if(b-a>=.6)out.push({w:b-a,pos:true,t:`${s.k==='skin'?'前日に':''}「${t}」がある日は${s.n}が軽め：平均 ${f1(a)}（ない日 ${f1(b)}）。`});
+    if(a-b>=.6)out.push({w:a-b,t:`${s.k==='skin'?'前日に':''}${f.n}がある日は${s.n}が平均 ${f1(a)}（ない日 ${f1(b)}・0〜3段階）。`});
+    if(b-a>=.6)out.push({w:b-a,pos:true,t:`${s.k==='skin'?'前日に':''}${f.n}がある日は${s.n}が軽め：平均 ${f1(a)}（ない日 ${f1(b)}）。`});
   }
   const withS=all.filter(k=>sleepOf(k)!=null&&days[k].focus);
   const sh=withS.filter(k=>sleepOf(k)<6.5),lo=withS.filter(k=>sleepOf(k)>=6.5);
   if(sh.length>=2&&lo.length>=2){const a=avg(sh.map(k=>days[k].focus)),b=avg(lo.map(k=>days[k].focus));
     if(Math.abs(a-b)>=.5)out.push({w:Math.abs(a-b),pos:b>a,t:`睡眠6.5時間以上の日は集中が平均 ${f1(b)}、それ未満の日は ${f1(a)}。`});}
+  const after=(d,key,from)=>d.stamps.some((y,i)=>i>=from&&stOf(y).includes(key));
+  for(const[key,from,lab]of[['coffee',60,'15時以降の☕'],['pc',88,'22時以降の💻'],['wine',72,'夜の🍷'],['donut',80,'20時以降の🍩']]){
+    const ks=all.filter(k=>sleepOf(addDays(k,1))!=null);
+    const on=ks.filter(k=>after(days[k],key,from)),off=ks.filter(k=>!after(days[k],key,from));
+    if(on.length<2||off.length<2)continue;
+    const a=avg(on.map(k=>sleepOf(addDays(k,1)))),b=avg(off.map(k=>sleepOf(addDays(k,1))));
+    if(Math.abs(a-b)>=.5)out.push({w:Math.abs(a-b),pos:a>b,t:`${lab}があった日の夜の睡眠は平均 ${f1(a)}h、なかった日は ${f1(b)}h。`});
+  }
+  const zz=all.filter(k=>days[k].stamps.some(y=>stOf(y).includes('zzz'))&&sleepOf(k)!=null),nz=all.filter(k=>days[k].slots.some(Boolean)&&!days[k].stamps.some(y=>stOf(y).includes('zzz'))&&sleepOf(k)!=null);
+  if(zz.length>=2&&nz.length>=2){const a=avg(zz.map(sleepOf)),b=avg(nz.map(sleepOf));if(b-a>=.5)out.push({w:b-a,t:`😴を押した日の前夜の睡眠は平均 ${f1(a)}h、押さなかった日は ${f1(b)}h。`})}
   return out.sort((x,y)=>y.w-x.w).slice(0,6);
 }
 $('#v-review').addEventListener('click',e=>{

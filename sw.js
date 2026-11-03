@@ -1,5 +1,5 @@
 // 15分ログ: オフラインで起動できるよう、アプリ本体をiPhoneに保存しておく
-const CACHE = 'log15-v1';
+const CACHE = 'log15-v2';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
